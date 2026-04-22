@@ -1,0 +1,73 @@
+# Compiled Lua sources
+luac.out
+
+# luarocks build files
+*.src.rock
+*.tar.gz
+
+# Object files
+*.o
+*.os
+*.ko
+*.obj
+*.elf
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+*.def
+*.exp
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# VS Code settings folder and it's contents
+.vscode
+.vscode/*
+
+!.vscode/settings.json
+
+# Archive
+.archive
+.archive/*
+
+# Documentation folder
+.doc
+.doc/*
+
+# User Data Folder
+data/*
+!data/README
+
+# TODO Folder
+.todo
+.todo/*
+
+.movies/*
+
+*.bat
+
+.VSCodeCounter
+.VSCodeCounter/*
+
+scripts/languages/cache/*
+.tocompile/*
+.tocompile
+exported
