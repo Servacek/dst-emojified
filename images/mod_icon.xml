@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Atlas>
+    <Texture filename="mod_icon.tex"/>
+    <Elements>
+        <Element name="mod_icon.tex" u1="0.000244141" u2="0.585693" v1="0.414307" v2="0.999756"/>
+    </Elements>
+    <StraightAlpha>false</StraightAlpha>
+</Atlas>

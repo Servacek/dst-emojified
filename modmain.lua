@@ -42,6 +42,6 @@ function modrequire(modulename)
     end
 end
 
-if GLOBAL.TheNet:GetIsClient() then
+if not GLOBAL.TheNet:IsDedicated() then
     modimport("scripts/clientside")
 end
