@@ -3,12 +3,12 @@
 name = "Animated Emojis"
 description = "Emojify your game with your well known emojis... even those animated!"
 author = "Fi8iP"
-version = "1.20"
+version = "1.21"
 
 dst_compatible = true
--- client_only_mod = true
+client_only_mod = true
 -- ! For server-side version of the mod uncomment this:
-all_clients_require_mod = true
+-- all_clients_require_mod = true
 
 -- Lowest possible priority so we override all the other emoji mods.
 priority = -1.7976931348623e+308 -- std::numeric_limits<lua_Number>::max()

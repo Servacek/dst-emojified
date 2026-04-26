@@ -29,17 +29,16 @@ setmetatable(ENV, MT)
 -- Set to true to enable debug output and cheats during development.
 DEBUG = false
 
-local CONFLICTING_MOD_IDS = {
+local CONFLICTING_MOD_NAMES = {
     ["workshop-3713900704"] = true,
-    ["3713900704"] = true,
 }
 
 local function IsConflictingModEnabled()
     local known_mod_index = GLOBAL.KnownModIndex
     if known_mod_index and type(known_mod_index.IsModEnabled) == "function" then
-        for modname in pairs(CONFLICTING_MOD_IDS) do
-            if modname ~= MODNAME and known_mod_index:IsModEnabled(modname) then
-                return true, modname
+        for name in pairs(CONFLICTING_MOD_NAMES) do
+            if name ~= modname and known_mod_index:IsModEnabled(name) then
+                return true, name
             end
         end
     end
