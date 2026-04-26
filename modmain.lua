@@ -26,6 +26,33 @@ local MT = {
 -- Modify the metatable of the current safe separated mod environment.
 setmetatable(ENV, MT)
 
+-- Set to true to enable debug output and cheats during development.
+DEBUG = false
+
+local CONFLICTING_MOD_IDS = {
+    ["workshop-3713900704"] = true,
+    ["3713900704"] = true,
+}
+
+local function IsConflictingModEnabled()
+    local known_mod_index = GLOBAL.KnownModIndex
+    if known_mod_index and type(known_mod_index.IsModEnabled) == "function" then
+        for modname in pairs(CONFLICTING_MOD_IDS) do
+            if modname ~= MODNAME and known_mod_index:IsModEnabled(modname) then
+                return true, modname
+            end
+        end
+    end
+
+    return false
+end
+
+local has_conflict, conflict_modname = IsConflictingModEnabled()
+if has_conflict then
+    print("[Emojified] Disabled because conflicting mod is enabled:", conflict_modname)
+    return
+end
+
 local _modrequire_cache = {}
 function modrequire(modulename)
     if _modrequire_cache[modulename] then

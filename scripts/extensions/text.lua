@@ -102,16 +102,16 @@ local function AdjustAllInsertedWidgets(lua_widget)
 end
 
 local function OnLuaWidgetInstRemoved(inst)
-    print("OnLuaWidgetRemoved", inst, inst._proxy_str)
+    if DEBUG then print("OnLuaWidgetRemoved", inst, inst._proxy_str) end
     local lua_widget = inst.widget
     if not lua_widget then
         return
     end
 
-    print("OnLuaWidgetRemoved", lua_widget)
+    if DEBUG then print("OnLuaWidgetRemoved", lua_widget) end
     for _, widget in pairs(lua_widget.inserted_widgets) do
         if widget._proxy_str ~= nil then
-            print("REMOVING", widget._proxy_str)
+            if DEBUG then print("REMOVING", widget._proxy_str) end
             _emoji_anim_states[widget._proxy_str] = nil
         end
     end
@@ -155,7 +155,10 @@ local function InsertWidgetAtPosition(lua_widget, widget, first, last)
     end
     lua_widget.inserted_widgets[first] = widget
 
-    lua_widget.inst:ListenForEvent("onremove", OnLuaWidgetInstRemoved)
+    if not lua_widget._onremove_registered then
+        lua_widget._onremove_registered = true
+        lua_widget.inst:ListenForEvent("onremove", OnLuaWidgetInstRemoved)
+    end
 
     AdjustWidget(lua_widget, widget)
 end
@@ -204,7 +207,7 @@ end
 
 local function OnCWidgetUpdated(c_widget)
     local parent = c_widget:GetParent()
-    if parent then
+    if parent and parent.inserted_widgets then
         AdjustAllInsertedWidgets(parent)
     end
 end
@@ -213,15 +216,22 @@ local function OnTextUpdated(lua_widget)
     local first = 1    --- @type integer?
     local last = first --- @type integer?
     local s = lua_widget:GetString() -- The updated string
+
+    -- Fast pre-check: skip the scan entirely when there are no emoji bytes and
+    -- no previously-inserted widgets that might need cleaning up.
+    if not s:find(m_CONSTANTS.UTF_EMOJI_PATTERN) and not lua_widget.inserted_widgets then
+        return
+    end
+
+    local emoji_count = 0
     while first ~= nil do
         first, last = s:find(m_CONSTANTS.UTF_EMOJI_PATTERN, first)
         if first == nil or last == nil then
             break
         end
-
-        local total_emoji_count = m_EMOJIS.CountEmojisInString(s)
+        emoji_count = emoji_count + 1
         local emoji_utf8_str = s:sub(first, last)
-        if total_emoji_count < MAX_EMOJIS_IN_MESSAGE and m_EMOJIS.IsEmojiAnimated(m_EMOJIS.UTF_TO_NAME[emoji_utf8_str]) and not IsEmojiInsertedAt(lua_widget, emoji_utf8_str, first) then
+        if emoji_count <= MAX_EMOJIS_IN_MESSAGE and m_EMOJIS.IsEmojiAnimated(m_EMOJIS.UTF_TO_NAME[emoji_utf8_str]) and not IsEmojiInsertedAt(lua_widget, emoji_utf8_str, first) then
             InsertAnimatedEmoji(lua_widget, first, last, emoji_utf8_str)
         end
 
@@ -233,12 +243,18 @@ local function OnTextUpdated(lua_widget)
     end
 
     if lua_widget.inserted_widgets then
+        -- Removing different fields while iterating
+        -- is undefined, so use a temporary array.
+        local to_remove = {}
         for _, widget in pairs(lua_widget.inserted_widgets) do
             if s:sub(widget._first_index, widget._last_index) ~= widget._proxy_str then
-                RemoveWidget(lua_widget, widget)
-                widget:Kill()
-                widget:Hide()
+                to_remove[#to_remove + 1] = widget
             end
+        end
+        for _, widget in ipairs(to_remove) do
+            RemoveWidget(lua_widget, widget)
+            widget:Hide()
+            widget:Kill()
         end
     end
 end

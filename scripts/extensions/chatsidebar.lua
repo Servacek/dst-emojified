@@ -92,6 +92,7 @@ AddEmojiMenu = function(self)
 
     self.emoji_menu.onemojichosen = function(emoji_id)
         local emoji_data = m_EMOJIS.DATA[emoji_id]
+        if not emoji_data then return end
         local str = textedit:GetString()
         local add_str = emoji_data.utf8_str.." "
         local new_str = str:sub(1, insert_index)..add_str..str:sub(insert_index + 1)
@@ -103,7 +104,7 @@ AddEmojiMenu = function(self)
         end
     end
 
-    if textedit.ValidateChar ~= textedit._ValidateChar and textedit.ValidateChar ~= nil then
+    if textedit._ValidateChar == nil and textedit.ValidateChar ~= nil then
         textedit._ValidateChar = AddClassFunctionPreCall("ValidateChar", function()
             return not TheInput:IsKeyDown(KEY_CTRL)
         end, textedit)

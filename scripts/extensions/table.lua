@@ -78,7 +78,7 @@ end
 
 function table.limit(t, limit)
     while #t > limit do
-        t[#t] = nil
+        table.remove(t)
     end
 end
 
@@ -256,19 +256,20 @@ end
 function table.pathset(t, path, new)
     local last_key
     local value = t -- We use this so t is the previous value
-    for key in path:gmatch("[^%.]+") do
+    for key in path:gmatch("[%w_]+") do
         if type(value) ~= "table" then
             return nil -- If any intermediate value is not a table, return nil
         end
 
         t = value
-        value = rawget(value, key)
+        value = value[key]
         if value == nil then
-            key = tonumber(key)
-            value = rawget(value, key)
+            local num_key = tonumber(key)
+            value = t[num_key]
             if value == nil then
                 return -- If any key doesn't exist, return nil
             end
+            key = num_key
         end
 
         last_key = key
@@ -352,7 +353,7 @@ function table.reorder(t, i, cmp)
     local lstep = (t[i-1] ~= nil and cmp(t[i], t[i-1]) and -1) or 0
     local rstep = (lstep == 0 and t[i+1] ~= nil and cmp(t[i+1], t[i]) and 1) or 0
     local step = lstep + rstep
-    -- In sorted array left < right, so loop until this is met.
+    if step == 0 then return i end
     while t[i + step] ~= nil and cmp(t[i + rstep], t[i + lstep]) do
         t[i + lstep], t[i + rstep] = t[i + rstep], t[i + lstep]
         i = i + step

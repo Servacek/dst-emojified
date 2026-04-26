@@ -88,7 +88,7 @@ ClientEmojiManager.CATEGORIES_ORDERED = {
         loadfn = function(self) -- Make sure this is loaded only after all the modules.
             for _, pack_name in pairs(m_EMOJIS.PACKS.DISCORD) do
                 -- Load these emojis only if their pack is enabled.
-                print("PACK: ", pack_name, "AVAILABLE: ", m_EMOJIS.IsEmojiPackAvailable(pack_name))
+                if DEBUG then print("PACK: ", pack_name, "AVAILABLE: ", m_EMOJIS.IsEmojiPackAvailable(pack_name)) end
                 if m_EMOJIS.IsEmojiPackAvailable(pack_name) then
                     table.join(self.emojis, table.keys(m_EMOJIS.PACK_CHAR_MAP[pack_name]))
                 end
@@ -103,7 +103,7 @@ ClientEmojiManager.CATEGORIES_ORDERED = {
     },
 }
 
-table.dump(ClientEmojiManager.CATEGORIES_ORDERED)
+if DEBUG then table.dump(ClientEmojiManager.CATEGORIES_ORDERED) end
 
 --- A category is represented as a table containing some data associated to the specific emoji category.
 --- It also contains a list of emoji ids that are specific to this category.
@@ -193,18 +193,12 @@ end
 -- [[ Public Methods ]]
 -------------------------------------
 
---- @return boolean
 function ClientEmojiManager:SavePersistentData()
-    local s = false
     TheSim:SetPersistentString(PERSISTENT_DATA_FILEPATH, ZipAndEncodeString(self._persistdata), self._encode_save_data, function(success)
-        s = success
+        if success then
+            self._unsaved_changes = false
+        end
     end)
-
-    if s then
-        self._unsaved_changes = false
-    end
-
-    return s
 end
 
 function ClientEmojiManager:LoadPersistentData()

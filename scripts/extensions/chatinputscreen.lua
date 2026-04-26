@@ -38,21 +38,56 @@ local CONTROL_MODIFIER = "Ctrl"
 
 local _OnRawKey, _OnControl
 
+local function IsCtrlDown()
+    return TheInput:IsKeyDown(KEY_CTRL)
+        or (KEY_LCTRL and TheInput:IsKeyDown(KEY_LCTRL))
+        or (KEY_RCTRL and TheInput:IsKeyDown(KEY_RCTRL))
+end
+
+local function GetEmojiMenuContext(active_screen)
+    if active_screen == nil then
+        return nil, nil
+    end
+
+    if ChatInputScreen.is_instance(active_screen) and active_screen.emoji_menu then
+        return active_screen.emoji_menu, active_screen.emoji_menu_button
+    end
+
+    local sidebar = active_screen.chat_sidebar
+    if sidebar and sidebar.emoji_menu then
+        local button = sidebar.emoji_menu_button
+        if button == nil and sidebar.chatbox then
+            button = sidebar.chatbox.emoji_menu_button
+        end
+
+        return sidebar.emoji_menu, button
+    end
+
+    return nil, nil
+end
+
 ---------------------------
 -- [[ Handler Extensions ]]
 ---------------------------
 
 local function ExtendedOnRawKey(self, key, down, ...)
     local active_screen = self:GetActiveScreen()
-    if active_screen and ChatInputScreen.is_instance(active_screen) and active_screen.emoji_menu then
-        if TheInput:IsKeyDown(KEY_CTRL) then
-            if not down and key == KEY_Y and active_screen.emoji_menu_button then
-                active_screen.emoji_menu_button.onclick()
-            else
-                return active_screen.emoji_menu:OnRawKey(key, down, ...)
-            end
+    local emoji_menu, emoji_button = GetEmojiMenuContext(active_screen)
+    if emoji_menu then
 
-            return true
+        if IsCtrlDown() then
+            if key == KEY_Y then
+                if not down then
+                    if emoji_button and emoji_button.onclick then
+                        emoji_button.onclick()
+                    else
+                        emoji_menu:Toggle()
+                    end
+                end
+                return true -- Eat the key event so we do not print anything into the chat.
+            else
+                return emoji_menu:OnRawKey(key, down, ...)
+            end
         end
     end
 
@@ -61,8 +96,14 @@ end
 
 local function ExtendedOnControl(self, control, down, ...)
     local active_screen = self:GetActiveScreen()
-    if active_screen and ChatInputScreen.is_instance(active_screen) then
-        active_screen.emoji_menu:OnControl(control, down, ...)
+    local emoji_menu = GetEmojiMenuContext(active_screen)
+    local handled = false
+    if emoji_menu and emoji_menu:IsOpen() then
+        handled = emoji_menu:OnControl(control, down, ...) == true
+    end
+
+    if handled then
+        return true
     end
 
     return _OnControl(self, control, down, ...)
@@ -113,7 +154,7 @@ local function AddEmojiMenuButton(menu)
     btn._hovertext:Hide()
 
     btn._hovertext._UpdatePosition = function(self, x, y)
-        if not x or y then
+        if not x or not y then
             local pos = TheInput:GetScreenPosition()
             x, y = pos.x, pos.y
         end
@@ -155,16 +196,6 @@ local function AddEmojiMenuButton(menu)
         local _, h = (menu.menu.mid_center or menu.menu.bg or menu.menu):GetSize()
         menu:SetPosition(pos_x - 10, pos_y + h / 2 + EMOJI_MENU_BUTTON_SIZE * 4)
     end)
-
-    if FrontEnd.OnRawKey ~= ExtendedOnRawKey then
-        _OnRawKey = FrontEnd.OnRawKey or function() return false end
-        FrontEnd.OnRawKey = ExtendedOnRawKey
-    end
-
-    if FrontEnd.OnControl ~= ExtendedOnControl then
-        _OnControl = FrontEnd.OnControl
-        FrontEnd.OnControl = ExtendedOnControl
-    end
 
     return btn
 end
@@ -264,6 +295,7 @@ local function AddEmojiMenu(self)
 
     self.emoji_menu.onemojichosen = function(emoji_id)
         local emoji_data = m_EMOJIS.DATA[emoji_id]
+        if not emoji_data then return end
         local str = self.chat_edit:GetString()
         local add_str = emoji_data.utf8_str.." "
         local new_str = str:sub(1, insert_index)..add_str..str:sub(insert_index + 1)
@@ -341,6 +373,18 @@ AddClassPostConstruct("screens/chatinputscreen", function(self, whisper)
         --     -- end, TheFrontEnd)
         -- end
 
-        AddEmojiMenu(self)
+        if GetModConfigData("EMOJI_MENU") ~= false then
+            AddEmojiMenu(self)
+        end
     end
 end)
+
+if FrontEnd.OnRawKey ~= ExtendedOnRawKey then
+    _OnRawKey = FrontEnd.OnRawKey or function() return false end
+    FrontEnd.OnRawKey = ExtendedOnRawKey
+end
+
+if FrontEnd.OnControl ~= ExtendedOnControl then
+    _OnControl = FrontEnd.OnControl or function() return false end
+    FrontEnd.OnControl = ExtendedOnControl
+end

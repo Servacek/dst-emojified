@@ -1,7 +1,8 @@
 
--- debugging:
-GLOBAL.BRANCH = "dev"
-GLOBAL.CHEATS_ENABLED = true
+if DEBUG then
+    GLOBAL.BRANCH = "dev"
+    GLOBAL.CHEATS_ENABLED = true
+end
 
 ----------------------------------
 
@@ -47,8 +48,8 @@ Assets = {
     Asset("ATLAS", "images/emoji_menu.xml"),
 }
 
-for pack_name, enabled in pairs(GetModConfigData("CUSTOM_EMOJI_PACKS") or {}) do
-    if enabled == true then
+for pack_name, _ in pairs(m_EMOJIS.PACK_CHAR_MAP) do
+    if m_EMOJIS.IsEmojiPackAvailable(pack_name) then
         local filepath = FONT_ASSET_PATH:format(pack_name)
         local font_table = {filename = filepath, alias = pack_name, disable_color = true}
 

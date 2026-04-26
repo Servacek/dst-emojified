@@ -2,11 +2,15 @@
 function AddClassFunctionPreCall(name, precb, class)
     local origin = class[name]
     class[name] = function(...)
-        precb(...)
+        if precb(...) == false then return end
         return origin(...)
     end
 
     return origin
+end
+
+local function pack(...)
+    return select('#', ...), {...}
 end
 
 function AddClassFunctionPostCall(name, postcb, class)
@@ -18,9 +22,9 @@ function AddClassFunctionPostCall(name, postcb, class)
 
     local origin = class[name]
     class[name] = function(...)
-        local results = {origin(...)}
+        local n, results = pack(origin(...))
         postcb(...)
-        return unpack(results)
+        return unpack(results, 1, n)
     end
 
     return origin

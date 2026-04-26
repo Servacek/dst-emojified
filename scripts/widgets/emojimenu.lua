@@ -211,8 +211,7 @@ end
 --- @param category table
 function EmojiMenu:_LoadEmojiCategory(category)
     -- PEARL.debug("EmojiMenu:_LoadEmojiCategory")
-    print("LOADING EMOJI CATEGORY")
-    table.dump(category)
+    if DEBUG then print("LOADING EMOJI CATEGORY") table.dump(category) end
 
     local remainder = #self.widget_data % SCROLLER_VISIBLE_COLS
     if remainder ~= 0 then -- Fill the remaining space in the last row with empty tiles.
@@ -819,7 +818,7 @@ function EmojiMenu:Open()
 
     for emoji_id, _ in pairs(self.emoji_data_map) do
         -- Save the "new" state here in case it changes during the session.
-        print(emoji_id, m_ClientEmojiManager:IsEmojiNew(emoji_id))
+        if DEBUG then print(emoji_id, m_ClientEmojiManager:IsEmojiNew(emoji_id)) end
         if m_ClientEmojiManager:IsEmojiNew(emoji_id) then
             self.new_emojis[emoji_id] = true
         end
@@ -876,9 +875,8 @@ function EmojiMenu:Toggle()
     end
 end
 
---- @TODO: Maybe this could be improved?
 function EmojiMenu:IsOpen()
-    return self.menu and self.menu:IsVisible()
+    return self.menu ~= nil and self.menu:IsVisible() == true
 end
 
 ---------------------------
