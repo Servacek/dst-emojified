@@ -1,9 +1,9 @@
 ---@diagnostic disable: lowercase-global
 
-name = "Animated Emojis"
+name = "Animated Emojis [LOCAL]"
 description = "Emojify your game with your well known emojis... even those animated!"
 author = "Fi8iP"
-version = "1.21"
+version = "1.22"
 
 dst_compatible = true
 client_only_mod = true

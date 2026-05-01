@@ -27,10 +27,12 @@ local MT = {
 setmetatable(ENV, MT)
 
 -- Set to true to enable debug output and cheats during development.
+-- ! Can cause issues wíth the mod loading when enabled.
 DEBUG = false
 
 local CONFLICTING_MOD_NAMES = {
     ["workshop-3713900704"] = true,
+    ["workshop-emojified"]  = true,
 }
 
 local function IsConflictingModEnabled()

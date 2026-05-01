@@ -89,29 +89,35 @@ local function ExtendedOnRawKey(self, key, down, ...)
                 return emoji_menu:OnRawKey(key, down, ...)
             end
         end
+
+        -- Ensure pressing escape will close the menu.
+        if key == KEY_ESCAPE and down and emoji_menu:IsOpen() then
+            emoji_menu:Close()
+            return true
+        end
     end
 
     return _OnRawKey(self, key, down, ...)
 end
 
 local function ExtendedOnControl(self, control, down, ...)
-    local active_screen = self:GetActiveScreen()
-    local emoji_menu = GetEmojiMenuContext(active_screen)
-    local handled = false
-    if emoji_menu and emoji_menu:IsOpen() then
-        handled = emoji_menu:OnControl(control, down, ...) == true
-    end
+    -- local active_screen = self:GetActiveScreen()
+    -- local emoji_menu = GetEmojiMenuContext(active_screen)
+    -- local handled = false
+    -- if emoji_menu and emoji_menu:IsOpen() then
+    --     handled = emoji_menu:OnControl(control, down, ...) == true
+    -- end
 
-    if handled then
-        return true
-    end
+    -- if handled then
+    --     return true
+    -- end
 
     return _OnControl(self, control, down, ...)
 end
 
----------------------------
--- [[ Local Functions ]]
----------------------------
+-- ---------------------------
+-- -- [[ Local Functions ]]
+-- ---------------------------
 
 local function GetSayControl()
     local control = CONTROL_TOGGLE_SAY
@@ -318,61 +324,6 @@ end
 
 AddClassPostConstruct("screens/chatinputscreen", function(self, whisper)
     if m_ClientEmojiManager:HasAnyAvailableEmojis() then
-        -- if PEARL.CONFIG.DEBUG_MODE then
-        --     PEARL.loadfile("extensions/ui/templates", nil, true)
-
-        --     -- Hot reload for faster testing
-        --     m_EmojiMenu = PEARL.loadfile("widgets/emojimenu", nil, true)
-
-        --     -- -- For debugging the animated emoji aligment
-        --     -- -- Swap testing emojis and their names, so animations are opposite colour.
-        --     -- PEARL.EMOJIS.UTF_TO_NAME[PEARL.EMOJIS.DISCORD["whitesquare"]] = "blacksquare"
-        --     -- PEARL.EMOJIS.UTF_TO_NAME[PEARL.EMOJIS.DISCORD["blacksquare"]] = "whitesquare"
-
-        --     -- local debug_text = self.chat_edit:AddChild(Text(UIFONT, 60))
-        --     -- debug_text:SetString(PEARL.EMOJIS.DISCORD.whitesquare.." "..PEARL.EMOJIS.DISCORD.whitesquare..""..PEARL.EMOJIS.DISCORD.whitesquare)
-
-        --     -- local infront = false
-        --     -- PEARL.AddClassFunctionPreCall("OnRawKey", function(self, key, down)
-        --     --     if not down then
-        --     --         return
-        --     --     end
-
-        --     --     if key == KEY_DOWN then
-        --     --         debug_text:SetSize(debug_text:GetSize() - 1)
-        --     --         return false
-        --     --     elseif key == KEY_UP then
-        --     --         debug_text:SetSize(debug_text:GetSize() + 1)
-        --     --         return false
-        --     --     end
-
-        --     --     local anim = next(debug_text.children)
-        --     --     if not anim then
-        --     --         return
-        --     --     end
-
-        --     --     if key == KEY_F2 then
-        --     --         if not infront then
-        --     --             anim:MoveToFront()
-        --     --         else
-        --     --             anim:MoveToBack()
-        --     --         end
-
-        --     --         infront = not infront
-        --     --         return false
-        --     --     end
-
-        --     --     local x, y = anim:GetPositionXYZ()
-        --     --     if key == KEY_LEFT then
-        --     --         anim:SetPosition(x + 1, y)
-        --     --         print("NEW POSITION", anim:GetPositionXYZ())
-        --     --     elseif key == KEY_RIGHT then
-        --     --         anim:SetPosition(x - 1, y)
-        --     --         print("NEW POSITION", anim:GetPositionXYZ())
-        --     --     end
-        --     -- end, TheFrontEnd)
-        -- end
-
         if GetModConfigData("EMOJI_MENU") ~= false then
             AddEmojiMenu(self)
         end
@@ -384,7 +335,8 @@ if FrontEnd.OnRawKey ~= ExtendedOnRawKey then
     FrontEnd.OnRawKey = ExtendedOnRawKey
 end
 
-if FrontEnd.OnControl ~= ExtendedOnControl then
-    _OnControl = FrontEnd.OnControl or function() return false end
-    FrontEnd.OnControl = ExtendedOnControl
-end
+-- TODO: This causes some weird issues with the curio cabinet unravel function when enabled.
+-- if FrontEnd.OnControl ~= ExtendedOnControl then
+--     _OnControl = FrontEnd.OnControl or function() return false end
+--     FrontEnd.OnControl = ExtendedOnControl
+-- end
